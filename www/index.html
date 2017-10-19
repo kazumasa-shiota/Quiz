@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  <script src="components/loader.js"></script>
+  <script src="lib/onsenui/js/onsenui.min.js"></script>
+
+  <link rel="stylesheet" href="components/loader.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script>
+    //問題データを取得する
+    var questions;    
+    $.getJSON("data.json", function(result){
+        questions = result;
+    })
+
+    var score;      //正解数
+    var current;    //現在の問題番号
+
+    //スタートボタンが押されたとき
+    function start(){
+        current = 0;
+        score = 0;
+//        document.getElementById("navi").pushPage("question.html");        
+        document.getElementById("navi").bringPageTop("question.html",{animation:"fade"});        
+    }
+    
+    //各ページが開いた時
+    document.addEventListener('init',function(event){
+        //開いたページがどのページか
+        var page = event.target;
+        
+        //問題ページが開いたとき
+        if(page.id == "question-page"){
+            //タイトルを設定
+            var title = "第" + questions[current].no + "問：" + questions[current].title;
+            page.querySelector('#title').innerHTML = title;
+            
+            page.querySelector('#btn1').innerHTML = questions[current].choice1;
+            page.querySelector('#btn2').innerHTML = questions[current].choice2;
+            page.querySelector('#btn3').innerHTML = questions[current].choice3;
+            page.querySelector('#btn4').innerHTML = questions[current].choice4;
+        
+        }else if(page.id == "kekka-page"){
+            page.querySelector("#kekka").innerHTML = questions.length + "問中" + score + "問正解！";
+
+            $("#btn_return").on("click",function(){//最初に戻るボタン
+                //top.htmlに戻る
+                document.getElementById("navi").resetToPage("top.html",{animation:"fade"});
+            })
+            
+        }
+    })
+    
+    //回答を選択した時
+    function select(choiceNo){        
+        var icon;
+        if(choiceNo == questions[current].answer){
+            //正解の場合、〇を表示して正答数をカウントアップ
+            icon = "circle-o";
+            score++;
+            
+        }else{
+            //間違いの場合、×を表示
+            icon = "close";
+        }
+        
+        //結果ページに移動
+//        document.getElementById("navi").pushPage("result.html").then(function(page){
+        document.getElementById("navi").bringPageTop("result.html",{animation:"fade"}).then(function(page){
+            page.querySelector("#result-icon").setAttribute("icon",icon);
+        })
+        
+    }
+    
+    //次のページへボタンを押したとき
+    function next(){
+        current++;
+        if(current < questions.length){
+            //次の問題がある時
+            document.getElementById("navi").pushPage('question.html',{animation:"fade"});
+        }else{
+            //最後の問題まで進んだ時
+            // var percent = Math.floor(score /questions.length * 100);
+            // var message = "正答率は" + percent + "％でした！";
+            // alert(message);
+            
+            //最初のページに戻る
+            // document.getElementById("navi").resetToPage("top.html");
+            // document.getElementById("navi").pushPage('kekka.html');
+
+            document.getElementById("navi").pushPage("kekka.html",{animation:"fade"}).then(function(page){
+                // page.querySelector("#question_num").innerHTML = questions.length;
+                // page.querySelector("#score_num").innerHTML = score;
+            })
+
+        }        
+    }
+        
+  </script>
+</head>
+<body>
+    <ons-navigator id="navi" page="top.html"></ons-navigator>
+    
+</body>
+</html>
